@@ -360,5 +360,109 @@ Thanks to Michael Hedges!
 \end{columns}
 \end{frame}
 
+\begin{frame}{Histogramming ergonomics}
+\vspace{-0.04 cm}
+
+\begin{center}
+\includegraphics[width=0.85\linewidth]{gitter-histogramming.png}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Toy languages: pattern matching for particle combinatorics}
+\small
+\begin{minted}{swift}
+higgs(flavor1, flavor2) =       // define a join pattern in a function
+    join {
+        z1 ~ {                  // Z boson subpattern
+            lep1 ~ flavor1      // lep1, lep2 from flavor1 collection
+            lep2 ~ flavor1      // leptons are NOT double-counted
+            mass = (lep1.p4 + lep2.p4).mass
+        }
+        z2 ~ {                  // another Z boson
+            lep1 ~ flavor2      // lep1, lep2 from flavor2, which
+            lep2 ~ flavor2      // might be the same as flavor1
+            mass = (lep1.p4 + lep2.p4).mass
+        }                       // filter and sort with functionals
+    }.filter(h => h.z1.lep1.charge != h.z1.lep2.charge and
+                  h.z2.lep1.charge != h.z2.lep2.charge)
+     .sort(h => (h.z1.mass - 91)**2 + (h.z2.mass - 91)**2)
+\end{minted}
+\begin{minted}{swift}
+higgs4e    = higgs(electrons, electrons)    // use the function
+higgs4mu   = higgs(muons, muons)            // to match patterns
+higgs2e2mu = higgs(electrons, muons)
+\end{minted}
+\end{frame}
+
+\begin{frame}{Laurelin: uproot-like ROOT I/O in Java}
+\begin{center}
+\includegraphics[width=\linewidth]{laurelin-jaggedarray.png}
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]{uproot $\to$ SkyHook}
+\scriptsize
+\begin{columns}[t]
+\column{0.5\linewidth}
+\begin{minted}{protobuf}
+include "interpretation.fbs";
+
+enum Compression: int {
+  none = 0,
+  zlib = 1,
+  lzma = 2,
+  old = 3,
+  lz4 = 4
+}
+
+table Branch {
+  local_offsets: [ulong] (required);
+  page_seeks: [ulong] (required);
+  compression: Compression;
+  iscompressed: [bool];
+  compressedbytes: [uint];
+  uncompressedbytes: [uint] (required);
+  basket_page_offsets: [uint] (required);
+  basket_keylens: [uint];
+  basket_data_borders: [uint];
+}
+\end{minted}
+
+\column{0.5\linewidth}
+\begin{minted}{protobuf}
+table Column {
+  interp: uproot_skyhook
+      .interpretation_generated
+      .Interpretation (required);
+  title: string;
+}
+
+table File {
+  location: string (required);
+  uuid: string (required);
+  branches: [Branch] (required);
+}
+
+table Dataset {
+  name: string (required);
+  treepath: string (required);
+  colnames: [string] (required);
+  columns: [Column] (required);
+  files: [File] (required);
+  global_offsets: [ulong] (required);
+  location_prefix: string;
+}
+\end{minted}
+
+\end{columns}
+\end{frame}
+
+\begin{frame}{\cancel{RForest} RNtuple discussions}
+\vspace{-0.04 cm}
+
+\begin{center}
+\includegraphics[width=0.85\linewidth]{rforest-rntuple.png}
+\end{center}
+\end{frame}
 
 \end{document}
