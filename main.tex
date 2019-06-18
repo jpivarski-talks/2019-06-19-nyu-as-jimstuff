@@ -296,7 +296,69 @@ lazy arrays are \mintinline{python}{ChunkedArrays} containing \mintinline{python
 \end{columns}
 \end{frame}
 
+\begin{frame}[fragile]{Pandas DataFrames}
+\large
+\vspace{0.25 cm}
 
+New method (experimental): make Pandas recognize jagged arrays as columns.
+
+\small
+\begin{minted}{python}
+>>> ttree.array("Muon_pt").pandas    # JaggedArray → JaggedSeries
+\end{minted}
+\scriptsize\color{darkblue}\vspace{-0.75\baselineskip}\begin{Verbatim}[commandchars=\\\{\}]
+<\textcolor{darkorange}{\textbf{JaggedSeries}} [[] [] [5.315762] ... [26.351288] [] [44.28051 6.6997213]]>
+\end{Verbatim}
+\color{black}
+
+\small
+\begin{minted}{python}
+>>> pandas.Series(ttree.array("Muon_pt").pandas)
+\end{minted}
+\scriptsize\color{darkblue}\vspace{-0.75\baselineskip}\begin{Verbatim}[commandchars=\\\{\}]
+0                                      []
+1                                      []
+2                              [5.315762]
+3                   [47.05483  19.042616]
+4                             [15.776729]
+5                             [14.511511]
+6                                      []
+                       ...               
+499994                         [36.54806]
+499995                        [10.061976]
+499996                                 []
+499997                        [26.351288]
+499998                                 []
+499999            [44.28051    6.6997213]
+Length: 500000, \textcolor{darkorange}{\textbf{dtype: awkward}}
+\end{Verbatim}
+\color{black}
+\large
+
+\vspace{-3 cm}
+\hfill \begin{minipage}{0.35\linewidth}
+Thanks to Michael Hedges!
+\end{minipage}
+\vspace{3 cm}
+\end{frame}
+
+\begin{frame}{awkward-cpp: Charlie Escott (GSoC) and maybe Duy Nguyen}
+\begin{center}
+\includegraphics[width=0.9\linewidth]{awkward-cpp-ongoing.png}
+\end{center}
+\end{frame}
+
+\begin{frame}{awkward-numba: my primary coding project; last touched Feb 27}
+\vspace{0.25 cm}
+
+\begin{columns}[t]
+\column{0.5\linewidth}
+\includegraphics[width=\linewidth]{numbafied-oamap.png}
+
+\column{0.51\linewidth}
+\includegraphics[width=\linewidth]{numbafied-awkward.png}
+\end{columns}
+\end{frame}
 
 
 \end{document}
