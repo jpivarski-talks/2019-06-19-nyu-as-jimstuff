@@ -360,7 +360,7 @@ Thanks to Michael Hedges!
 \end{columns}
 \end{frame}
 
-\begin{frame}{Histogramming ergonomics}
+\begin{frame}{Meddling in histogram design}
 \vspace{-0.04 cm}
 
 \begin{center}
@@ -463,6 +463,26 @@ table Dataset {
 \begin{center}
 \includegraphics[width=0.85\linewidth]{rforest-rntuple.png}
 \end{center}
+\end{frame}
+
+\begin{frame}{Conclusion: just trying to keep all these fires burning}
+\vspace{0.5 cm}
+\begin{columns}
+\column{1.15\linewidth}
+\includegraphics[width=\linewidth]{projects.pdf}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Big picture}
+\vspace{0.4 cm}
+\Large
+
+\begin{enumerate}\setlength{\itemsep}{0.25 cm}
+\item Create an environment in which particle physics analysis is convenient in open-ecosystem Python (i.e.\ easly mix with industry-standard tools).
+\item Ensure that this is not a performance penalty by encouraging columnar processing, JIT-compilation, and precompiled kernels.
+\item Reduce complexity with optional high-level layers (e.g.\ declarative languages).
+\item Integrate these with scalable systems: eventually want simple, fast, Spark-like analysis.
+\end{enumerate}
 \end{frame}
 
 \end{document}
