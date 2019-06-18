@@ -94,5 +94,209 @@
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Keeping up with uproot}
+\vspace{0.5 cm}
+
+\only<1>{\includegraphics[width=\linewidth]{all_file_project.pdf}}\only<2>{\includegraphics[width=\linewidth]{pip-scientificlinux-uproot.pdf}}
+
+\only<1>{\vspace{0.65 cm}}
+\begin{itemize}
+\item Uproot is wildly popular {\tt:)}
+\item Nobody (except Coffea) installs awkward-array on its own, only through uproot {\tt:(}
+\item The way to get new awkward features in front of a lot of physicists is to make it an option in uproot.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Lazy arrays in uproot (ChunkedArrays of VirtualArrays in awkward)}
+\large
+\vspace{0.25 cm}
+
+Lazy arrays have an interface like direct arrays but internally iterate in chunks.
+
+\small
+\begin{minted}{python}
+>>> ttree.array("Muon_pt")      # loads whole array, contiguously
+\end{minted}
+
+\vspace{-0.6 cm}
+\color{darkblue}\begin{verbatim}
+<JaggedArray  [[] [] [5.31576] ... [26.35128] [] [44.2805 6.699721]]>
+\end{verbatim}
+\color{black}
+
+\vspace{-0.6 cm}
+\begin{minted}{python}
+>>> ttree.lazyarray("Muon_pt")  # loads first and last chunk (to print)
+\end{minted}
+
+\vspace{-0.6 cm}
+\color{darkblue}\begin{verbatim}
+<ChunkedArray [[] [] [5.31576] ... [26.35128] [] [44.2805 6.699721]]>
+\end{verbatim}
+\color{black}\large
+
+\begin{uncoverenv}<2->
+The following splits data into 1~GB chunks, loading no more than 3~GB at a time, and computes \mintinline{python}{pz} from \mintinline{python}{Muon_pt} and \mintinline{python}{Muon_eta}.
+
+\small
+\begin{minted}{python}
+>>> cache = uproot.ArrayCache("3 GB")
+>>> events = uproot.lazyarrays("cms-nanoaod/*.root", "Events",
+                               entrysteps="1 GB", cache=cache)
+>>> pz = events.Muon_pt * numpy.sinh(events.Muon_eta)
+\end{minted}
+\end{uncoverenv}
+\end{frame}
+
+\begin{frame}[fragile]{Lazy profile: CMS NanoAOD}
+\large
+\vspace{0.5 cm}
+
+\begin{columns}
+\column{1.05\linewidth}
+If your TTrees are CMS NanoAOD, you can get lazy arrays as an event hierarchy:
+
+\small
+\begin{minted}{python}
+>>> events = ttree.lazyarrays(profile="cms.nanoaod")
+>>> events
+\end{minted}
+
+\vspace{-0.6 cm}
+\color{darkblue}\begin{verbatim}
+<Table [<Event 0> <Event 1> ... <Event 499998> <Event 499999>]>
+\end{verbatim}
+\color{black}
+
+\vspace{-0.6 cm}
+\begin{minted}{python}
+>>> events.muons           # now it reads nMuon...
+\end{minted}
+
+\vspace{-0.6 cm}
+\color{darkblue}\begin{verbatim}
+<ChunkedArray [[] [] [<Muon 0>] ... [] [<Muon 537187> <Muon 537188>]]>
+\end{verbatim}
+\color{black}
+
+\vspace{-0.6 cm}
+\begin{minted}{python}
+>>> events.muons.pt        # now it reads Muon_pt...
+\end{minted}
+
+\vspace{-0.6 cm}
+\color{darkblue}\begin{verbatim}
+<ChunkedArray [[] [] [5.315762] ... [] [44.28051 6.6997213]]>
+\end{verbatim}
+\color{black}
+
+\vspace{-0.6 cm}
+\begin{minted}{python}
+>>> events.columns         # to see structure (also tab-complete)
+\end{minted}
+
+\vspace{-0.6 cm}
+\color{darkblue}\begin{verbatim}
+['run', 'lumi', 'event', 'electrons', 'muons', 'taus', 'photons',
+ 'jets', 'fatjets', 'subjets', 'isotracks', 'softjets', 'softactivity',
+ 'fixedGridRhoFastjet', 'MET', 'rawMET', 'caloMET', 'puppiMET', 'tkMET',
+ 'PV', 'SVs', 'otherPVs', 'pileup', 'trigobjs', 'gen', 'etc', 'raw']
+\end{verbatim}
+\color{black}
+
+\vspace{-0.6 cm}
+\begin{minted}{python}
+>>> events.muons.columns   # to see the muon columns...
+\end{minted}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Lazy profile: CMS NanoAOD}
+\large
+\vspace{0.3 cm}
+
+Since everything is loaded on demand, some fields can be defined in terms of others without unnecessary reading or memory use.
+
+\small
+\begin{minted}{python}
+>>> events.muons.p4     # now it reads Muon_eta, Muon_phi, Muon_mass
+\end{minted}
+
+\vspace{-0.4 cm}
+\color{darkblue}\begin{verbatim}
+<ChunkedArray [[] []
+               [TLorentzVector(5.315, 1.127, 2.695, 0.1057)]
+               ...
+               [TLorentzVector(44.281, 0.7856,  2.3838, 0.10571)
+                TLorentzVector(6.6997, 1.9197, -0.0706, 0.10571)]]>
+\end{verbatim}
+\color{black}\large
+
+\begin{uncoverenv}<2->
+Cross-references are presented as objects, too.
+
+\small
+\begin{minted}{python}
+>>> events.muons.jet    # now it reads Muon_JetIdx and nJet
+\end{minted}
+
+\vspace{-0.3 cm}
+\color{darkblue}\begin{verbatim}
+<ChunkedArray [[] [] [<Jet 12>] ... [<Jet 4102602> <Jet 4102603>]]>
+\end{verbatim}
+\color{black}\large
+\end{uncoverenv}
+
+\begin{uncoverenv}<3->
+So we can compute things like ``$\Delta \phi$ between every muon and its associated jet.''
+
+\small
+\begin{minted}{python}
+>>> events.muons.p4.delta_phi(events.muons.jet.p4)
+\end{minted}
+
+\vspace{-0.3 cm}
+\color{darkblue}\begin{verbatim}
+<ChunkedArray [[] [] [-0.118652344] ... [0.0009765625 0.1444397]]>
+\end{verbatim}
+\color{black}
+\end{uncoverenv}
+\end{frame}
+
+\begin{frame}{With lazy arrays, uproot now uses half of the awkward-array classes}
+\vspace{0.35 cm}
+\begin{columns}
+\column{1.1\linewidth}
+\begin{tabular}{p{0.26\linewidth} p{0.71\linewidth}}
+\textcolor{mauve}{\mintinline{python}{JaggedArray}}        & \textcolor{mauve}{array containing variable-length subarrays} \\
+\textcolor{red}{\mintinline{python}{Table}}                & \textcolor{red}{struct of arrays, presented as an array of structs} \\
+\textcolor{red}{\mintinline{python}{ObjectArray}}          & \textcolor{red}{creates Python objects on demand, such as \mintinline{python}{TLorentzVector}} \\
+\textcolor{red}{\mintinline{python}{Methods}}              & \textcolor{red}{vectorized methods, like \mintinline{python}{muons.delta_phi(muons.jet)}} \\
+\textcolor{blue}{\mintinline{python}{StringArray}}         & \textcolor{blue}{strings (jagged array of characters)} \\
+\mintinline{python}{IndexedArray}                          & ``pointers'' into another array (via integer indexes) \\
+\mintinline{python}{SparseArray}                           & inverse of {\tt IndexedArray}: zero everywhere except specified indexes \\
+\mintinline{python}{MaskedArray}                           & marks elements as {\tt None} with a byte array \\
+\textcolor{blue}{\mintinline{python}{BitMaskedArray}}      & \textcolor{blue}{marks elements as {\tt None} with a bit array} \\
+\textcolor{red}{\mintinline{python}{IndexedMaskedArray}}   & \textcolor{red}{indexes and masks in one array to avoid placeholders in the data array} \\
+\mintinline{python}{UnionArray}                            & contains multiple (enumerated) types \\
+\textcolor{mauve}{\mintinline{python}{ChunkedArray}}       & \textcolor{mauve}{view discontiguous memory buffers as one array} \\
+\mintinline{python}{AppendableArray}                       & efficiently grow an array in chunks \\
+\textcolor{mauve}{\mintinline{python}{VirtualArray}}       & \textcolor{mauve}{load data on demand} \\
+\end{tabular}
+
+\vspace{-0.25 cm}
+\begin{center}
+\begin{minipage}{0.63\linewidth}
+\small
+\textcolor{red}{used by uproot to read ROOT}, \textcolor{blue}{used to read Parquet}, \textcolor{mauve}{used for both}
+
+lazy arrays are \mintinline{python}{ChunkedArrays} containing \mintinline{python}{VirtualArrays}.
+\end{minipage}
+\end{center}
+\end{columns}
+\end{frame}
+
+
+
 
 \end{document}
